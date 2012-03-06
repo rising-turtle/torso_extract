@@ -25,4 +25,6 @@ add_executable(body_orientation body_orientation.cpp body_extract.cpp global_def
 add_executable(body_orientation_serial body_orientation_serial.cpp body_extract.cpp global_def.cpp serial_com.cpp histogram_filter.cpp crc_generator.cpp coder.cpp)
 target_link_libraries(body_orientation_serial realsense ${OpenCV_LIBS})
 
-
+###### view and save rgb & dpt data from rs200 #####
+add_executable(save_img save_img.cpp global_def.cpp)
+target_link_libraries(save_img glfw realsense GLU GL ${OpenCV_LIBS})

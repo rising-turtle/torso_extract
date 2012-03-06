@@ -1,235 +1,140 @@
+// License: Apache 2.0. See LICENSE file in root directory.
+// Copyright(c) 2015 Intel Corporation. All Rights Reserved.
+
+///////////////////////////////////////////////////////////
+// librealsense tutorial #2 - Accessing multiple streams //
+///////////////////////////////////////////////////////////
+
 /*
- * Oct. 13, 20167 David Z
- * 
- *  get a frame from realsense, and save img data
+ *  Oct. 13 2017 David Z 
  *
+ *  Save rgbd data
  *
  * */
 
+
+
+// First include the librealsense C++ header file
 #include <librealsense/rs.hpp>
-#include "global.h"
-#include "example.hpp"
-
-#include <GLFW/glfw3.h>
-#include <chrono>
-#include <vector>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
+#include <cstdio>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+// Also include GLFW to allow for graphical display
+#include <GLFW/glfw3.h>
+#include <cv.h>
+#include <highgui.h>
+#include <string>
+#include <sstream>
 
-using namespace std; 
+using namespace cv; 
+using namespace std;
 
-inline void glVertex(const rs::float3 & vertex) { glVertex3fv(&vertex.x); }
-inline void glTexCoord(const rs::float2 & tex_coord) { glTexCoord2fv(&tex_coord.x); }
-
-struct state { double yaw, pitch, lastX, lastY; bool ml; std::vector<rs::stream> tex_streams; int index; rs::device * dev; bool is_save_pts; };
-
-void setWinUI(GLFWwindow **pwin); 
-
-void view_image();
-
-int main(int argc, char * argv[]) try
+inline string fname(int id)
 {
-    view_image(); 
+  stringstream ss; 
+  ss << setfill('0')<<setw(6)<<id<<".png"; 
+  return ss.str();
+} 
 
+int main(int argc, char* argv[]) try
+{
+    // Create a context object. This object owns the handles to all connected realsense devices.
+    rs::context ctx;
+    printf("There are %d connected RealSense devices.\n", ctx.get_device_count());
+    if(ctx.get_device_count() == 0) return EXIT_FAILURE;
+
+    // This tutorial will access only a single device, but it is trivial to extend to multiple devices
+    rs::device * dev = ctx.get_device(0);
+    printf("\nUsing device 0, an %s\n", dev->get_name());
+    printf("    Serial number: %s\n", dev->get_serial());
+    printf("    Firmware version: %s\n", dev->get_firmware_version());
+
+    int fps = 30; 
+
+    // Configure all streams to run at VGA resolution at 60 frames per second
+    dev->enable_stream(rs::stream::depth, 640, 480, rs::format::z16, fps);
+    dev->enable_stream(rs::stream::color, 640, 480, rs::format::rgb8, fps);
+    // dev->enable_stream(rs::stream::infrared, 640, 480, rs::format::y8, 60);
+    // try { dev->enable_stream(rs::stream::infrared2, 640, 480, rs::format::y8, 60); }
+    // catch(...) { printf("Device does not provide infrared2 stream.\n"); }
+    dev->start();
+
+    // Open a GLFW window to display our output
+    glfwInit();
+    GLFWwindow * win = glfwCreateWindow(1280, 480, "librealsense tutorial #2", nullptr, nullptr);
+    glfwMakeContextCurrent(win);
+
+    // where to save image 
+    string dir("./data"); 
+    if(argc > 1) 
+      dir = argv[1]; 
+    int id = 1; 
+    string c_dir = dir + "/color";
+    string d_dir = dir + "/depth";
+    mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); 
+    mkdir(c_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); 
+    mkdir(d_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); 
+
+    while(!glfwWindowShouldClose(win))
+    {
+        // Wait for new frame data
+        glfwPollEvents();
+        dev->wait_for_frames();
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glPixelZoom(1, -1);
+
+        // Display depth data by linearly mapping depth between 0 and 2 meters to the red channel
+        glRasterPos2f(-1, 1);
+        glPixelTransferf(GL_RED_SCALE, 0xFFFF * dev->get_depth_scale() / 2.0f);
+        glDrawPixels(640, 480, GL_RED, GL_UNSIGNED_SHORT, dev->get_frame_data(rs::stream::depth));
+        glPixelTransferf(GL_RED_SCALE, 1.0f);
+
+        // Display color image as RGB triples
+        glRasterPos2f(0, 1);
+        glDrawPixels(640, 480, GL_RGB, GL_UNSIGNED_BYTE, dev->get_frame_data(rs::stream::color));
+
+        // Display infrared image by mapping IR intensity to visible luminance
+        // glRasterPos2f(-1, 0);
+        // glDrawPixels(640, 480, GL_LUMINANCE, GL_UNSIGNED_BYTE, dev->get_frame_data(rs::stream::infrared));
+
+        // Display second infrared image by mapping IR intensity to visible luminance
+        // if(dev->is_stream_enabled(rs::stream::infrared2))
+        {        
+           // glRasterPos2f(0, 0);
+           // glDrawPixels(640, 480, GL_LUMINANCE, GL_UNSIGNED_BYTE, dev->get_frame_data(rs::stream::infrared2));
+        }
+
+        // generate rgb cv::Mat 
+        cv::Mat rgb(480, 640, CV_8UC3, (void*)(dev->get_frame_data(rs::stream::color))); 
+        // cv::imshow("rgb", rgb); 
+        // cv::waitKey(20); 
+
+        // generate depth cv::Mat
+        cv::Mat dpt(480, 640, CV_16UC1, (void*)(dev->get_frame_data(rs::stream::depth)));
+
+        // save data 
+        string c_name = c_dir + "/" + fname(id); 
+        string d_name = d_dir + "/" + fname(id); 
+        cv::imwrite(c_name.c_str(), rgb);
+        cv::imwrite(d_name.c_str(), dpt);
+        id++; 
+        cout <<"save_img.cpp: save "<<id<<" images!"<<endl; 
+
+        // cv::imshow("dpt", dpt);
+        // cv::waitKey(20); 
+    
+        glfwSwapBuffers(win);
+        usleep(1000*10); 
+    }
+    
     return EXIT_SUCCESS;
 }
 catch(const rs::error & e)
 {
-    std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    // Method calls against librealsense objects may throw exceptions of type rs::error
+    printf("rs::error was thrown when calling %s(%s):\n", e.get_failed_function().c_str(), e.get_failed_args().c_str());
+    printf("    %s\n", e.what());
     return EXIT_FAILURE;
 }
-catch(const std::exception & e)
-{
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-}
-
-void view_image()
-{	
-    rs::log_to_console(rs::log_severity::warn);
-    //rs::log_to_file(rs::log_severity::debug, "librealsense.log");
-
-    rs::context ctx;
-    if(ctx.get_device_count() == 0) throw std::runtime_error("No device detected. Is it plugged in?");
-    rs::device & dev = *ctx.get_device(0);
-
-    dev.enable_stream(rs::stream::depth, rs::preset::best_quality);
-    dev.enable_stream(rs::stream::color, rs::preset::best_quality);
-    dev.enable_stream(rs::stream::infrared, rs::preset::best_quality);
-    try { dev.enable_stream(rs::stream::infrared2, rs::preset::best_quality); } catch(...) {}
-    dev.start();
-    
-    state app_state = {0, 0, 0, 0, false, {rs::stream::color, rs::stream::depth, rs::stream::infrared}, 0, &dev};
-    if(dev.is_stream_enabled(rs::stream::infrared2)) app_state.tex_streams.push_back(rs::stream::infrared2);
-    
-    glfwInit();
-    std::ostringstream ss; ss << "CPP Point Cloud Example (" << dev.get_name() << ")";
-    GLFWwindow * win = glfwCreateWindow(640, 480, ss.str().c_str(), 0, 0);
-    glfwSetWindowUserPointer(win, &app_state);
-     
-	setWinUI(&win); 
-   
-    glfwMakeContextCurrent(win);
-    texture_buffer tex;
-	
-    int frames = 0; float time = 0, fps = 0;
-    auto t0 = std::chrono::high_resolution_clock::now();
-    
-    while (!glfwWindowShouldClose(win))
-    {
-        glfwPollEvents();
-        if(dev.is_streaming()) dev.wait_for_frames();
-
-        auto t1 = std::chrono::high_resolution_clock::now();
-        time += std::chrono::duration<float>(t1-t0).count();
-        t0 = t1;
-        ++frames;
-        if(time > 0.5f)
-        {
-            fps = frames / time;
-            frames = 0;
-            time = 0;
-        }
-
-        const rs::stream tex_stream = app_state.tex_streams[app_state.index];
-        const float depth_scale = dev.get_depth_scale();
-        const rs::extrinsics extrin = dev.get_extrinsics(rs::stream::depth, tex_stream);
-        const rs::intrinsics depth_intrin = dev.get_stream_intrinsics(rs::stream::depth);
-        const rs::intrinsics tex_intrin = dev.get_stream_intrinsics(tex_stream);
-        bool identical = depth_intrin == tex_intrin && extrin.is_identity();
-      
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-        tex.upload(dev, tex_stream);
-
-        int width, height;
-        glfwGetFramebufferSize(win, &width, &height);
-        glViewport(0, 0, width, height);
-        glClearColor(52.0f/255, 72.f/255, 94.0f/255.0f, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        gluPerspective(60, (float)width/height, 0.01f, 20.0f);
-
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        gluLookAt(0,0,0, 0,0,1, 0,-1,0);
-
-        glTranslatef(0,0,+0.5f);
-        glRotated(app_state.pitch, 1, 0, 0);
-        glRotated(app_state.yaw, 0, 1, 0);
-        glTranslatef(0,0,-0.5f);
-
-        glPointSize((float)width/640);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, tex.get_gl_handle());
-        glBegin(GL_POINTS);
-
-        // auto points = reinterpret_cast<const rs::float3 *>(dev.get_frame_data(rs::stream::points));
-        auto depth = reinterpret_cast<const uint16_t *>(dev.get_frame_data(rs::stream::depth));
-	const rs::float3 * points = reinterpret_cast<const rs::float3 *>(dev.get_frame_data(rs::stream::points));
-	vector<int> indices; 
-	
-        cout <<" depth height: "<<depth_intrin.height<<" width: "<<depth_intrin.width<<endl; 
-        cout <<" tex height: "<<tex_intrin.height<<" width: "<<tex_intrin.width<<endl; 
-
-
-        for(int y=0; y<depth_intrin.height; ++y)
-        {
-          for(int x=0; x<depth_intrin.width; ++x)
-          {
-            if(points->z) //if(uint16_t d = *depth++)
-            {
-              glTexCoord(identical ? tex_intrin.pixel_to_texcoord({static_cast<float>(x),static_cast<float>(y)}) : tex_intrin.project_to_texcoord(extrin.transform(*points)));
-              glVertex(*points);
-            }
-            ++points;
-          }
-        }
-        glEnd();
-
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glPopAttrib();
-
-        glfwGetWindowSize(win, &width, &height);
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-        glPushMatrix();
-        glOrtho(0, width, height, 0, -1, +1);
-        
-        std::ostringstream ss; ss << dev.get_name() << " (" << app_state.tex_streams[app_state.index] << ")";
-        draw_text((width-get_text_width(ss.str().c_str()))/2, height-20, ss.str().c_str());
-
-        ss.str(""); ss << fps << " FPS";
-        draw_text(20, 40, ss.str().c_str());
-
-        glPopMatrix();
-
-        glfwSwapBuffers(win);
-        usleep(1000*30);
-    }
-
-    glfwDestroyWindow(win);
-    glfwTerminate();
-
-}
-
-
-///////////////////////////////////////////////////
-//
-void setWinUI(GLFWwindow **pwin)
-{
-    GLFWwindow * win = *pwin; 
-
-    glfwSetMouseButtonCallback(win, [](GLFWwindow * win, int button, int action, int mods)
-    {
-        auto s = (state *)glfwGetWindowUserPointer(win);
-        if(button == GLFW_MOUSE_BUTTON_LEFT) s->ml = action == GLFW_PRESS;
-        if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) s->index = (s->index+1) % s->tex_streams.size();
-    });
-        
-    glfwSetCursorPosCallback(win, [](GLFWwindow * win, double x, double y)
-    {
-        auto s = (state *)glfwGetWindowUserPointer(win);
-        if(s->ml)
-        {
-            s->yaw -= (x - s->lastX);
-            s->yaw = std::max(s->yaw, -120.0);
-            s->yaw = std::min(s->yaw, +120.0);
-            s->pitch += (y - s->lastY);
-            s->pitch = std::max(s->pitch, -80.0);
-            s->pitch = std::min(s->pitch, +80.0);
-        }
-        s->lastX = x;
-        s->lastY = y;
-    });
-        
-    glfwSetKeyCallback(win, [](GLFWwindow * win, int key, int scancode, int action, int mods)
-    {
-        auto s = (state *)glfwGetWindowUserPointer(win);
-        if (action == GLFW_RELEASE)
-        {
-            if (key == GLFW_KEY_ESCAPE) glfwSetWindowShouldClose(win, 1);
-            else if (key == GLFW_KEY_F1)
-            {
-               if (!s->dev->is_streaming()) s->dev->start();
-            }
-            else if (key == GLFW_KEY_F2)
-            {
-               if (s->dev->is_streaming()) s->dev->stop();
-            }else if(key == GLFW_KEY_F4)
-            {
-              s->is_save_pts = true; 
-            }
-        }
-    });
-
-}
-
-
