@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/hub_robotics/work/body_orientation_new/src/serial_com.cpp
+serial_com.h
+/home/hub_robotics/work/body_orientation_new/src/serial_com.h
+stdio.h
+-
+unistd.h
+-
+string.h
+-
+
+/home/hub_robotics/work/body_orientation_new/src/serial_com.h
+fcntl.h
+-
+termios.h
+-
+stdlib.h
+-
+
+/home/hub_robotics/work/body_orientation_new/src/test_serial.cpp
+serial_com.h
+/home/hub_robotics/work/body_orientation_new/src/serial_com.h
+stdio.h
+-
+string.h
+-
+unistd.h
+-
+cmath
+-
+
