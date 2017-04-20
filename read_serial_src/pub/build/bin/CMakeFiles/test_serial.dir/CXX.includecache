@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/hub_robotics/work/read_serial_src/pub/src/serial_com.cpp
+serial_com.h
+/home/hub_robotics/work/read_serial_src/pub/src/serial_com.h
+stdio.h
+-
+unistd.h
+-
+string.h
+-
+
+/home/hub_robotics/work/read_serial_src/pub/src/serial_com.h
+fcntl.h
+-
+termios.h
+-
+stdlib.h
+-
+
+/home/hub_robotics/work/read_serial_src/pub/src/test_serial.cpp
+serial_com.h
+/home/hub_robotics/work/read_serial_src/pub/src/serial_com.h
+stdio.h
+-
+string.h
+-
+sys/signal.h
+-
+sys/types.h
+-
+sys/stat.h
+-
+unistd.h
+-
+csignal
+-
+
