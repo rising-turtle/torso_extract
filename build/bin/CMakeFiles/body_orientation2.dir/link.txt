@@ -1,1 +1,0 @@
-/usr/bin/c++    -O3 -w -g -ggdb -std=c++11    CMakeFiles/body_orientation2.dir/body_orientation_m2.cpp.o CMakeFiles/body_orientation2.dir/body_extract.cpp.o CMakeFiles/body_orientation2.dir/global_def.cpp.o  -o body_orientation2  -L/usr/local/lib -rdynamic /usr/local/lib/libglfw.so.3.2 -lrealsense -lGLU -lGL -Wl,-rpath,/usr/local/lib 

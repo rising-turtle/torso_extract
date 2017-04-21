@@ -1,1 +1,0 @@
-/home/hub_robotics/work/read_serial_src/pub/build/bin/CMakeFiles/test_serial.dir
