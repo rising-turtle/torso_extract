@@ -27,7 +27,7 @@
 #include <fstream>
 #include "rs_r200_wrapper.h"
 #include "cam_model.h"
-
+#include "pt2img.h"
 
 using namespace std; 
 
@@ -42,6 +42,13 @@ void offline_pipeline();
 void computePts(vector<rs::float3>& pts, vector<int>& indices, CamModel& cam, cv::Mat& rgb, cv::Mat& dpt, float scale); 
 
 bool readData(string dir, int index, CamModel& cam, vector<rs::float3>& pts); 
+
+float compute_angle(float n[3])
+{ 
+    float l = sqrt(n[0]*n[0] + n[2]*n[2]); 
+    if (l <= 1e-5) return 0; 
+    return (asin(n[0]/l) * 180./M_PI);
+}
 
 int main(int argc, char* argv[])
 {
@@ -80,10 +87,10 @@ void offline_pipeline()
   CBodyExtract body_extract; 
   CHisFilter hf;
 
-  // ofstream ouf("pts.log"); 
+  ofstream ouf("result.log"); 
 
   // while (!glfwWindowShouldClose(win))
-  for(int j=20; j<400 && !glfwWindowShouldClose(win); j++)
+  for(int j=39; j<400 && !glfwWindowShouldClose(win); j++)
   {
     // cv::imshow("rgb", rgb);
     // cv::waitKey(10); 
@@ -139,6 +146,8 @@ void offline_pipeline()
     rs::float3 * points = &(pv[0]); 
     vector<int> remained_indices; 
     vector<int> indices; 
+    vector<rs::float3> pbody; 
+
     if(body_extract.segmentFromCentral((void**)(&points), 640, 480, indices))
     {
       // histogramFilter((void**)(&points), indices, b_remained); 
@@ -151,6 +160,7 @@ void offline_pipeline()
         if(b_remained[i]){
           glColor3f(0, 1.0, 0.0);
           remained_indices.push_back(indices[i]);
+          pbody.push_back(*pt); 
         }
         else{
           glColor3f(1.0, 0, 0);
@@ -166,12 +176,21 @@ void offline_pipeline()
       // uncertainty = body_extract.extractOrientation((void**)(&points), indices, centroid_pt, nv_direction); 
       uncertainty = body_extract.extractOrientation((void**)(&points), remained_indices, centroid_pt, nv_direction); 
       display_body_orientation = true; 
+      // project pts into topview 
+      topviewPts(pbody, true, j); 
+      
+      float theta = compute_angle(nv_direction); 
+      cout << " compute nv: "<<nv_direction[0]<<" "<<nv_direction[1]<<" "<<nv_direction[2]<<" theta = "<<compute_angle(nv_direction)<<endl; 
+      
+      // save result 
+      ouf<<std::fixed<<j<<"\t"<<theta<<endl; 
     }else{
       cerr <<"torso_offline.cpp: no body extracted ! "<<endl; 
       sleep(2); 
     }
 
     glEnd();
+
     if(display_body_orientation)
     {
       glColor3ub((unsigned char)(255*(1-uncertainty)), (unsigned char)(255*(uncertainty)), 0);

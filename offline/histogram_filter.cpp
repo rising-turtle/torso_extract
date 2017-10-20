@@ -178,7 +178,8 @@ int CHisFilter::regionGrow()
       if(isIllegal(nx, ny)) continue; 
       if(m_Used[nx][ny]) continue; 
       
-      if(abs(m_AvgV[nx][ny] - h) < 50 && m_AvgV[nx][ny] > 100)
+      // if(abs(m_AvgV[nx][ny] - h) < 50 && m_AvgV[nx][ny] > 50)
+      if(m_AvgV[nx][ny] > 50)
       {
         qx.push(nx); 
         qy.push(ny); 

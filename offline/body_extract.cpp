@@ -63,9 +63,9 @@ int CBodyExtract::findInitialFromCentral(void** pts, int cw, int ch)
   int h = ch * 2; 
   int w = cw * 2;
   rs::float3 * p = reinterpret_cast< rs::float3 *>(*pts);
-  int r = 50; 
-  for(int ih=-r; ih<=r; ih++)
-  for(int iw=-r; iw<=r; iw++)
+  int r = 200; 
+  for(int ih=-r; ih<=r; ih+=4)
+  for(int iw=-r; iw<=r; iw+=4)
   {
     int pw = cw + iw; 
     int ph = ch + ih; 
