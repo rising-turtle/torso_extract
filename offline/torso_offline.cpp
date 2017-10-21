@@ -71,7 +71,7 @@ void offline_pipeline()
   // texture_buffer tex;
   GLuint texture;
 
-  string dir("/home/davidz/work/data/up/rollator/dataset1");
+  string dir("/home/davidz/work/data/up/rollator/dataset3");
 
   // generate 3d point cloud 
   vector<rs::float3> pv; 
@@ -90,7 +90,7 @@ void offline_pipeline()
   ofstream ouf("result.log"); 
 
   // while (!glfwWindowShouldClose(win))
-  for(int j=39; j<400 && !glfwWindowShouldClose(win); j++)
+  for(int j=10; j<400 && !glfwWindowShouldClose(win); j++)
   {
     // cv::imshow("rgb", rgb);
     // cv::waitKey(10); 
