@@ -14,4 +14,5 @@ extern void minmaxX(std::vector<rs::float3>& pt, float& min, float & max);
 extern void minmaxZ(std::vector<rs::float3>& pt, float& min, float & max); 
 extern void topviewPts(std::vector<rs::float3>&, bool save_img = false, int start_i = 1, bool show_img = true); 
 
+extern void extractNonZero(std::vector<rs::float3>& pts, vector<float>& px, vector<float>& py); 
 

@@ -28,6 +28,7 @@
 #include "rs_r200_wrapper.h"
 #include "cam_model.h"
 #include "pt2img.h"
+#include "toPython.h"
 
 using namespace std; 
 
@@ -71,7 +72,7 @@ void offline_pipeline()
   // texture_buffer tex;
   GLuint texture;
 
-  string dir("/home/davidz/work/data/up/rollator/dataset3");
+  string dir("/home/davidz/work/data/up/rollator/dataset1");
 
   // generate 3d point cloud 
   vector<rs::float3> pv; 
@@ -88,6 +89,9 @@ void offline_pipeline()
   CHisFilter hf;
 
   ofstream ouf("result.log"); 
+
+  // interface to python script
+  ToPython topy("/home/davidz/work/github/torso_extract/offline", "polyfit"); 
 
   // while (!glfwWindowShouldClose(win))
   for(int j=10; j<400 && !glfwWindowShouldClose(win); j++)
@@ -148,6 +152,8 @@ void offline_pipeline()
     vector<int> indices; 
     vector<rs::float3> pbody; 
 
+    vector<float> nonzero_x; 
+    vector<float> nonzero_y; 
     if(body_extract.segmentFromCentral((void**)(&points), 640, 480, indices))
     {
       // histogramFilter((void**)(&points), indices, b_remained); 
@@ -175,15 +181,19 @@ void offline_pipeline()
 
       // uncertainty = body_extract.extractOrientation((void**)(&points), indices, centroid_pt, nv_direction); 
       uncertainty = body_extract.extractOrientation((void**)(&points), remained_indices, centroid_pt, nv_direction); 
-      display_body_orientation = true; 
-      // project pts into topview 
-      topviewPts(pbody, true, j); 
-      
       float theta = compute_angle(nv_direction); 
       cout << " compute nv: "<<nv_direction[0]<<" "<<nv_direction[1]<<" "<<nv_direction[2]<<" theta = "<<compute_angle(nv_direction)<<endl; 
-      
+ 
+      display_body_orientation = true; 
+      // project pts into topview 
+      // topviewPts(pbody, true, j); 
+      extractNonZero(pbody, nonzero_x, nonzero_y); 
+
+      // compute theta using polyfit 
+      float theta2 =  topy.List2F1("point_pipeline",(float*)(nonzero_x.data()), (float*)(nonzero_y.data()), nonzero_x.size());
+
       // save result 
-      ouf<<std::fixed<<j<<"\t"<<theta<<endl; 
+      ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<endl; 
     }else{
       cerr <<"torso_offline.cpp: no body extracted ! "<<endl; 
       sleep(2); 

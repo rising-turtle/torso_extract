@@ -77,7 +77,49 @@ void topviewPts(std::vector<rs::float3>& pts, bool save_img, int si, bool show_i
     ss <<"./tmp/"<<si<<".png"; 
     cv::imwrite(ss.str().c_str(), img); 
   }
-  return; 
+  return ; 
+}
+
+void extractNonZero(std::vector<rs::float3>& pts, vector<float>& px, vector<float>& py)
+{
+  float min_x, max_x, min_z, max_z; 
+  minmaxX(pts, min_x, max_x);
+  minmaxZ(pts, min_z, max_z); 
+  
+  float span_x = max_x - min_x; 
+  float span_z = max_z - min_z; 
+
+  float span = span_x ; 
+  float scale = SPAN/span; 
+  
+  int X_SPAN = (span_x * scale) + 1; 
+  int Y_SPAN = (span_z * scale) + 1; 
+  
+  vector<vector<unsigned char> > vH(Y_SPAN, vector<unsigned char>(X_SPAN, 0)); 
+
+  int row; // [0~Y_SPAN-1]
+  int col; 
+  int max_v = 1; 
+  // unsigned char tmp; 
+  for(int i=0; i<pts.size(); i++)
+  {
+    rs::float3& pt = pts[i]; 
+    row = Y_SPAN-1- (int)((pt.z - min_z)*scale);
+    col = (int)((pt.x - min_x) * scale); 
+    if(col < 0 || col >= X_SPAN || row < 0) continue; 
+    
+    // tmp = img.at<unsigned char>(row)(col) ++; 
+    vH[row][col]++;
+    if(vH[row][col] == 1)
+    {
+      px.push_back(col);
+      py.push_back(row); 
+    }
+    // if(vH[row][col] > MAX_H) vH[row][col] = MAX_H;  
+    // if(vH[row][col] > max_v) max_v = vH[row][col]; 
+  }
+  
+return ;
 }
 
 void minmaxX(std::vector<rs::float3>& pts, float& min, float & max)
