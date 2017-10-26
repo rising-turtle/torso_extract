@@ -13,6 +13,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include "pt2img.h"
+#include "../offline/toPython.h"
 #include "smooth.h"
 
 extern unsigned short encoder(unsigned short v, bool neg);
@@ -111,6 +113,9 @@ void test_body_orientation(int argc, char* argv[])
     // Smooth 
     CSmooth<double> smooth; 
 
+    // interface to python script
+    ToPython topy("/home/hub_robotics/work/body_orientation_new/ipynb", "polyfit"); 
+
     // while (!glfwWindowShouldClose(win))
     while(true)
     {
@@ -149,6 +154,11 @@ void test_body_orientation(int argc, char* argv[])
         vector<bool> b_remained;
         vector<int> remained_indices; 
 
+        vector<rs::float3> pbody; 
+
+        vector<float> nonzero_x; 
+        vector<float> nonzero_y;
+
 	if(body_extract.segmentFromCentral((void**)(&points), depth_intrin.width, depth_intrin.height, indices))
 	{
             // histogramFilter((void**)(&points), indices, b_remained); 
@@ -162,8 +172,12 @@ void test_body_orientation(int argc, char* argv[])
             }
 
             // uncertainty = body_extract.extractOrientation((void**)(&points), indices, centroid_pt, nv_direction); 
-            body_extract.extractOrientation((void**)(&points), remained_indices, centroid_pt, nv_direction);
-	    yaw = compute_angle(nv_direction); 
+            // body_extract.extractOrientation((void**)(&points), remained_indices, centroid_pt, nv_direction);
+	    // yaw = compute_angle(nv_direction); 
+            extractNonZero(pbody, nonzero_x, nonzero_y); 
+
+            // compute theta using polyfit 
+            yaw =  topy.List2F1("point_pipeline",(float*)(nonzero_x.data()), (float*)(nonzero_y.data()), nonzero_x.size());
 
             // smooth the result
             smooth.push(yaw); 
