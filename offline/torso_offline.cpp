@@ -29,6 +29,7 @@
 #include "cam_model.h"
 #include "pt2img.h"
 #include "toPython.h"
+#include "smooth.h"
 
 using namespace std; 
 
@@ -72,7 +73,7 @@ void offline_pipeline()
   // texture_buffer tex;
   GLuint texture;
 
-  string dir("/home/davidz/work/data/up/rollator/dataset1");
+  string dir("/home/davidz/work/data/up/rollator/dataset2");
 
   // generate 3d point cloud 
   vector<rs::float3> pv; 
@@ -92,6 +93,10 @@ void offline_pipeline()
 
   // interface to python script
   ToPython topy("/home/davidz/work/github/torso_extract/offline", "polyfit"); 
+
+
+  // try smooth filter 
+  CSmooth<double> smooth; 
 
   // while (!glfwWindowShouldClose(win))
   for(int j=10; j<400 && !glfwWindowShouldClose(win); j++)
@@ -153,7 +158,8 @@ void offline_pipeline()
     vector<rs::float3> pbody; 
 
     vector<float> nonzero_x; 
-    vector<float> nonzero_y; 
+    vector<float> nonzero_y;
+
     if(body_extract.segmentFromCentral((void**)(&points), 640, 480, indices))
     {
       // histogramFilter((void**)(&points), indices, b_remained); 
@@ -191,9 +197,14 @@ void offline_pipeline()
 
       // compute theta using polyfit 
       float theta2 =  topy.List2F1("point_pipeline",(float*)(nonzero_x.data()), (float*)(nonzero_y.data()), nonzero_x.size());
+      
+      // add to smooth
+      smooth.push(theta2); 
 
       // save result 
-      ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<endl; 
+      // ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<endl; 
+      ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<endl; 
+
     }else{
       cerr <<"torso_offline.cpp: no body extracted ! "<<endl; 
       sleep(2); 
