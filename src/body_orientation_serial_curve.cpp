@@ -167,8 +167,12 @@ void test_body_orientation(int argc, char* argv[])
             remained_indices.reserve(indices.size());
             for(int i=0; i<indices.size(); i++)
             {
+              const rs::float3 *pt = points + indices[i];
               if(b_remained[i]) 
+              {
                 remained_indices.push_back(indices[i]);
+                pbody.push_back(*pt); 
+              }
             }
 
             // uncertainty = body_extract.extractOrientation((void**)(&points), indices, centroid_pt, nv_direction); 
