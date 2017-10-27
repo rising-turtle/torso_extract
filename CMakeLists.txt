@@ -19,4 +19,5 @@ find_package(glfw3 REQUIRED)
 ## opencv : required for test_histogram 
 find_package(OpenCV REQUIRED)
 
-add_subdirectory(src bin)
+# add_subdirectory(src bin)
+add_subdirectory(offline bin)
