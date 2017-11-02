@@ -176,7 +176,7 @@ void test_body_orientation(int argc, char* argv[])
             }
 
             // uncertainty = body_extract.extractOrientation((void**)(&points), indices, centroid_pt, nv_direction); 
-            // body_extract.extractOrientation((void**)(&points), remained_indices, centroid_pt, nv_direction);
+            body_extract.extractOrientation((void**)(&points), remained_indices, centroid_pt, nv_direction);
 	    // yaw = compute_angle(nv_direction); 
             extractNonZero(pbody, nonzero_x, nonzero_y); 
 
