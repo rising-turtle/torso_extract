@@ -110,6 +110,7 @@ int main(int argc, char* argv[]) try
         cv::Mat rgb(480, 640, CV_8UC3, (void*)(dev->get_frame_data(rs::stream::color))); 
         // cv::imshow("rgb", rgb); 
         // cv::waitKey(20); 
+        cv::cvtColor(rgb, rgb, CV_BGR2RGB);
 
         // generate depth cv::Mat
         cv::Mat dpt(480, 640, CV_16UC1, (void*)(dev->get_frame_data(rs::stream::depth)));

@@ -11,10 +11,14 @@ add_executable(body_orientation body_orientation.cpp body_extract.cpp global_def
  target_link_libraries(body_orientation glfw realsense GLU GL ${OpenCV_LIBS})
 
 ######## show the body direction computed using plane fitting ######
- add_executable(body_orientation2 body_orientation_m2.cpp body_extract.cpp global_def.cpp)
- target_link_libraries(body_orientation2 glfw realsense GLU GL)
+# add_executable(body_orientation2 body_orientation_m2.cpp body_extract.cpp global_def.cpp)
+# target_link_libraries(body_orientation2 glfw realsense GLU GL)
 
- ######## test the histogram ######
+######## show the body direction computed using curve fitting ######
+add_executable(body_orientation_serial_curve body_orientation_serial_curve.cpp body_extract.cpp global_def.cpp serial_com.cpp histogram_filter.cpp crc_generator.cpp coder.cpp pt2img.cpp)
+target_link_libraries(body_orientation_serial_curve realsense toPython ${OpenCV_LIBS})
+
+######## test the histogram ######
  add_executable(test_histogram test_histogram.cpp body_extract.cpp global_def.cpp histogram_filter.cpp)
  target_link_libraries(test_histogram glfw realsense GLU GL ${OpenCV_LIBS})
 
