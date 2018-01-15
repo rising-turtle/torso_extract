@@ -14,7 +14,7 @@
 
 using namespace std; 
 
-template<typename T, int L = 5>
+template<typename T, int L = 7>
 class CSmooth
 {
   public:
