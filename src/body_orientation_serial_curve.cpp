@@ -189,7 +189,7 @@ void test_body_orientation(int argc, char* argv[])
 
             // added Jan. 15 2018 He Zhang
             
-            if(fabs(yaw) > 3.2)// degree
+            // if(fabs(yaw) > 3.2)// degree
             {
               double scale = 2.87309; 
               double b = 0.64167;
