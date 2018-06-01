@@ -186,6 +186,16 @@ void test_body_orientation(int argc, char* argv[])
             // smooth the result
             smooth.push(yaw); 
             yaw = smooth.pop();
+
+            // added Jan. 15 2018 He Zhang
+            
+            // if(fabs(yaw) > 3.2)// degree
+            {
+              double scale = 2.87309; 
+              double b = 0.64167;
+              yaw = scale *(yaw + b); 
+            }
+
             printf("body_orientation_serial.cpp: frame capture at %f fps, body orientation %f %f %f, yaw = %f\n", fps, nv_direction[0], nv_direction[1], nv_direction[2], yaw); 
 		
             // memcpy(buf, (char*)nv_direction, F3); 
