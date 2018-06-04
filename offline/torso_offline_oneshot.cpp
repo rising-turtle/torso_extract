@@ -65,7 +65,6 @@ void offline_pipeline_oneshot(int argc, char* argv[])
     cout <<"No image is specified "<<endl
     <<"usage: torso_offline_oneshot [dir] [image_id]"<<endl;
   }
-
   // 
   glfwInit();
   state app_state = {0, 0, 0, 0, false, 0};
@@ -158,7 +157,6 @@ void offline_pipeline_oneshot(int argc, char* argv[])
 	if(body_extract.segmentFromCentral((void**)(&points), 640, 480, indices))
 	{
 	    // histogramFilter((void**)(&points), indices, b_remained); 
-
 	    hf.test((void**)(&points), indices, b_remained); 
 
 	    for(int i=0; i< indices.size(); i++)
