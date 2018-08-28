@@ -73,7 +73,7 @@ void offline_pipeline()
   // texture_buffer tex;
   GLuint texture;
 
-  string dir("/home/davidz/work/data/up/rollator/dataset2");
+  string dir("/home/davidz/work/data/up/rollator/dataset1");
 
   // generate 3d point cloud 
   vector<rs::float3> pv; 

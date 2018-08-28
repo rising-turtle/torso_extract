@@ -179,7 +179,7 @@ int CHisFilter::regionGrow()
       if(m_Used[nx][ny]) continue; 
       
       // if(abs(m_AvgV[nx][ny] - h) < 50 && m_AvgV[nx][ny] > 50)
-      if(m_AvgV[nx][ny] > 50)
+      if(m_AvgV[nx][ny] > 70) // 50
       {
         qx.push(nx); 
         qy.push(ny); 
