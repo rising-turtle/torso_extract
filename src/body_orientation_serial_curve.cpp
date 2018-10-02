@@ -181,7 +181,7 @@ void test_body_orientation(int argc, char* argv[])
             extractNonZero(pbody, nonzero_x, nonzero_y); 
 
             // compute theta using polyfit 
-            yaw =  topy.List2F1("point_pipeline",(float*)(nonzero_x.data()), (float*)(nonzero_y.data()), nonzero_x.size());
+            yaw = topy.List2F1("point_pipeline",(float*)(nonzero_x.data()), (float*)(nonzero_y.data()), nonzero_x.size());
 
             // smooth the result
             smooth.push(yaw); 
@@ -250,6 +250,8 @@ void test_body_orientation(int argc, char* argv[])
           // when person is out of view, reset the result  
           smooth.clear(); 
 	}
+         // delete points; 
+         // delete depth; 
     }
 }
 
