@@ -17,7 +17,7 @@ add_executable(torso_offline torso_offline.cpp global_def.cpp histogram_filter.c
 target_link_libraries(torso_offline cam_model toPython glfw GLU GL ${OpenCV_LIBS})
  
 ###### read camera frames from disk and then extract torso #######
-add_executable(torso_offline_oneshot torso_offline_oneshot.cpp global_def.cpp histogram_filter.cpp body_extract.cpp pt2img.cpp lowpass.cpp)
+add_executable(torso_offline_oneshot torso_offline_oneshot.cpp global_def.cpp histogram_filter.cpp body_extract.cpp pt2img.cpp lowpass.cpp load_image.cpp)
 target_link_libraries(torso_offline_oneshot cam_model toPython glfw GLU GL ${OpenCV_LIBS})
 
 

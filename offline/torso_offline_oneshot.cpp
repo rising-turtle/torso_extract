@@ -44,6 +44,9 @@ void offline_pipeline_oneshot(int argc, char* argv[]);
 void computePts(vector<rs::float3>& pts, vector<int>& indices, CamModel& cam, cv::Mat& rgb, cv::Mat& dpt, float scale); 
 
 bool readData(string dir, int index, CamModel& cam, vector<rs::float3>& pts); 
+bool readData2(string dir, vector<string>& vrgb, vector<string>& vdpt, int index, CamModel& cam, vector<rs::float3>& pts); 
+
+extern bool loadImages(string filename, vector<string>& vrgb, vector<string>& vdpt, vector<double>& vt);
 
 float compute_angle(float n[3])
 { 
@@ -97,11 +100,26 @@ void offline_pipeline_oneshot(int argc, char* argv[])
   // CSmooth<double> smooth; 
     CLowPass filter(0.5, 0.1); 
 
+/*
     if(!readData(dir, image_id, c2h, pv))
     {
 	cout <<"Failed to load image at "<<dir<<" image_id = "<<image_id<<endl; 
 	return ;  
     }
+*/
+    vector<string> vrgb, vdpt; 
+    vector<double> vt; 
+    string filename = dir + "/timestamp.txt"; 
+    if(!loadImages(filename, vrgb, vdpt, vt))
+    {
+	return ; 
+    }
+    if(!readData2(dir, vrgb, vdpt, image_id, c2h, pv))
+    {
+	cout <<"Failed to load image at "<<dir<<" image_id = "<<image_id<<endl; 
+	return ;  
+    }
+
 
     while(!glfwWindowShouldClose(win))
     {
@@ -248,6 +266,30 @@ bool readData(string dir, int index, CamModel& cam, vector<rs::float3>& pts)
     return true; 
 }
 
+bool readData2(string dir, vector<string>& vrgb, vector<string>& vdpt, int index, CamModel& cam, vector<rs::float3>& pts)
+{
+    pts.clear(); 
+    string f_rgb, f_dpt;
+    if(index < 0 || index >= vrgb.size())
+    {
+	cout<<" torso_offline_oneshot: index = "<<index<<" out of range: "<<vrgb.size()<<endl;
+	return false; 
+    }
+    f_rgb = dir +"/" + vrgb[index]; 
+    f_dpt = dir +"/" + vdpt[index]; 
+    cv::Mat rgb, dpt; 
+    CRSR200Wrapper r200; 
+    if(!r200.readOneFrameCV(f_rgb, f_dpt, rgb, dpt))
+    {
+	cerr <<"torso_offline_oneshot: failed to load image: "<<f_rgb<<endl << "depth: "<<f_dpt<<endl;;
+	return false; 
+    }else{
+	cout <<"torso_offline_oneshot: handle image: "<<f_rgb<<endl;
+    }
+    vector<int> indices; 
+    computePts(pts, indices, cam, rgb, dpt, 0.001); 
+    return true; 
+}
 
 void computePts(vector<rs::float3>& pts, vector<int>& indices, CamModel &cam, cv::Mat& rgb, cv::Mat& dpt,  float d_scale)
 {
