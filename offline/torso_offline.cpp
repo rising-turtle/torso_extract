@@ -39,11 +39,13 @@ inline void glVertex(const rs::float3 & vertex) { glVertex3fv(&vertex.x); }
 
 void setWinUI(GLFWwindow **pwin); 
 
-void offline_pipeline(); 
+void offline_pipeline(int argc, char* argv[]); 
 
 void computePts(vector<rs::float3>& pts, vector<int>& indices, CamModel& cam, cv::Mat& rgb, cv::Mat& dpt, float scale); 
 
 bool readData(string dir, int index, CamModel& cam, vector<rs::float3>& pts); 
+bool readData2(string dir, vector<string>& vrgb, vector<string>& vdpt, int index, CamModel& cam, vector<rs::float3>& pts); 
+extern bool loadImages(string filename, vector<string>& vrgb, vector<string>& vdpt, vector<double>& vt);
 
 float compute_angle(float n[3])
 { 
@@ -54,12 +56,30 @@ float compute_angle(float n[3])
 
 int main(int argc, char* argv[])
 {
-  offline_pipeline(); 
+  offline_pipeline(argc, argv); 
   return 0; 
 }
 
-void offline_pipeline()
+void offline_pipeline(int argc, char* argv[])
 {
+  // string dir("/home/davidz/work/data/up/rollator/dataset1");
+  if(argc < 2)
+  {	
+    cout << "torso_offline: No input directory is specified!"<<endl 
+	<<" usage: torso_offline: [dir]"<<endl;
+    return ; 
+  }
+  
+  string dir = string(argv[1]); 
+  vector<string> vrgb, vdpt; 
+  vector<double> vt; 
+  string filename = dir + "/timestamp.txt"; 
+  if(!loadImages(filename, vrgb, vdpt, vt))
+  {
+    cout <<"torso_offline: failed to obstain files at dir: "<<dir<<endl; 
+    return ; 
+  } 
+
   // 
   glfwInit();
   // state app_state = {0, 0, 0, 0, false, {rs::stream::color, rs::stream::depth, rs::stream::infrared}, 0, &dev};
@@ -72,8 +92,6 @@ void offline_pipeline()
   glfwMakeContextCurrent(win);
   // texture_buffer tex;
   GLuint texture;
-
-  string dir("/home/davidz/work/data/up/rollator/dataset1");
 
   // generate 3d point cloud 
   vector<rs::float3> pv; 
@@ -94,9 +112,10 @@ void offline_pipeline()
   // interface to python script
   ToPython topy("/home/davidz/work/github/torso_extract/offline", "polyfit"); 
 
-
   // try smooth filter 
   CSmooth<double> smooth; 
+
+  // load data 
 
   // while (!glfwWindowShouldClose(win))
   for(int j=10; j<400 && !glfwWindowShouldClose(win); j++)
@@ -106,9 +125,11 @@ void offline_pipeline()
     // cv::imshow("dpt", dpt);
     // cv::waitKey(10); 
   
-    if(!readData(dir, j, c2h, pv))
+    // if(!readData(dir, j, c2h, pv))
+    if(!readData2(dir, vrgb, vdpt, j, c2h, pv))
     {
-      break; 
+	cout <<"torso_offline: failed to load image at j = "<<j<<endl; 
+	break; 
     }
 
     glfwPollEvents();
@@ -203,7 +224,8 @@ void offline_pipeline()
 
       // save result 
       // ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<endl; 
-      ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<endl; 
+      // ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<endl; 
+      ouf<<std::fixed<<vt[j]<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<endl; 
 
     }else{
       cerr <<"torso_offline.cpp: no body extracted ! "<<endl; 
@@ -247,6 +269,33 @@ void offline_pipeline()
   glfwDestroyWindow(win);
   glfwTerminate();
 }
+
+bool readData2(string dir, vector<string>& vrgb, vector<string>& vdpt, int index, CamModel& cam, vector<rs::float3>& pts)
+{
+    pts.clear(); 
+    string f_rgb, f_dpt;
+    if(index < 0 || index >= vrgb.size())
+    {
+	cout<<" torso_offline: index = "<<index<<" out of range: "<<vrgb.size()<<endl;
+	return false; 
+    }
+    f_rgb = dir +"/" + vrgb[index]; 
+    f_dpt = dir +"/" + vdpt[index]; 
+    cv::Mat rgb, dpt; 
+    CRSR200Wrapper r200; 
+    if(!r200.readOneFrameCV(f_rgb, f_dpt, rgb, dpt))
+    {
+	cerr <<"torso_offline: failed to load image: "<<f_rgb<<endl << "depth: "<<f_dpt<<endl;;
+	return false; 
+    }else{
+	cout <<"torso_offline: handle image: "<<f_rgb<<endl;
+    }
+    vector<int> indices; 
+    computePts(pts, indices, cam, rgb, dpt, 0.001); 
+    return true; 
+}
+
+
 
 bool readData(string dir, int index, CamModel& cam, vector<rs::float3>& pts)
 {
