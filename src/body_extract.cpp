@@ -63,16 +63,39 @@ int CBodyExtract::findInitialFromCentral(void** pts, int cw, int ch)
   int h = ch * 2; 
   int w = cw * 2;
   rs::float3 * p = reinterpret_cast< rs::float3 *>(*pts);
-  int r = 50; 
-  for(int ih=-r; ih<=r; ih++)
-  for(int iw=-r; iw<=r; iw++)
+  int r = 200; 
+  for(int d=0; d<=200; d++)
   {
-    int pw = cw + iw; 
-    int ph = ch + ih; 
-    int pindex = ph * w + pw;
-    rs::float3 * p_cur = p + pindex; 
-    if(p_cur->z <= 2. && p_cur->z >= 0.4)
-      return pindex;
+     for(int id=0; id<=d; id++)
+     {
+	int jd = d - id; 
+	for(int ih = -id; ih <= id ; ih+= 2*id)
+	{
+	    for(int iw = -jd; iw <= jd ; iw += 2*jd)
+	    {
+		int pw = cw + iw; 
+		int ph = ch + ih; 
+		int pindex = ph * w + pw;
+		rs::float3 * p_cur = p + pindex; 
+		// cout <<"at x= "<<pw<<" y= "<<ph<<" pt: "<<p_cur->x<<" "<<p_cur->y<<" "<<p_cur->z<<endl;
+		if(p_cur->z <= 2. && p_cur->z >= 0.4)
+		    return pindex;
+		if(jd == 0) break; 
+	    }
+	    if(id == 0) break; 
+	}
+     }/*
+      for(int ih=0; ih<=d; ih++)
+	  for(int iw=-r; iw<=r; iw+=2)
+	  {
+	      int pw = cw + iw; 
+	      int ph = ch + ih; 
+	      int pindex = ph * w + pw;
+	      rs::float3 * p_cur = p + pindex; 
+	      cout <<"at x= "<<pw<<" y= "<<ph<<" pt: "<<p_cur->x<<" "<<p_cur->y<<" "<<p_cur->z<<endl;
+	      if(p_cur->z <= 2. && p_cur->z >= 0.4)
+		  return pindex;
+	  }*/
   }
   return -1;
 }
@@ -181,8 +204,8 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
 		int sh = seed_index/w;
 		int sw = seed_index - sh*w; 
 		// search for neighbors 
-		for(int ih=-1; ih<=1; ih++)
-		for(int iw=-1; iw<=1; iw++)
+		for(int ih=-5; ih<=5; ih++)
+		for(int iw=-5; iw<=5; iw++)
 		{
 			ch = sh + ih; 
 			cw = sw + iw; 
