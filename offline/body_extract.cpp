@@ -64,16 +64,38 @@ int CBodyExtract::findInitialFromCentral(void** pts, int cw, int ch)
   int w = cw * 2;
   rs::float3 * p = reinterpret_cast< rs::float3 *>(*pts);
   int r = 200; 
-  for(int ih=-r; ih<=r; ih+=4)
-  for(int iw=-r; iw<=r; iw+=4)
+  for(int d=0; d<=200; d++)
   {
-    int pw = cw + iw; 
-    int ph = ch + ih; 
-    int pindex = ph * w + pw;
-    rs::float3 * p_cur = p + pindex; 
-    // cout <<"pt: "<<p_cur->x<<" "<<p_cur->y<<" "<<p_cur->z<<endl;
-    if(p_cur->z <= 2. && p_cur->z >= 0.4)
-      return pindex;
+     for(int id=0; id<=d; id++)
+     {
+	int jd = d - id; 
+	for(int ih = -id; ih <= id ; ih+= 2*id)
+	{
+	    for(int iw = -jd; iw <= jd ; iw += 2*jd)
+	    {
+		int pw = cw + iw; 
+		int ph = ch + ih; 
+		int pindex = ph * w + pw;
+		rs::float3 * p_cur = p + pindex; 
+		// cout <<"at x= "<<pw<<" y= "<<ph<<" pt: "<<p_cur->x<<" "<<p_cur->y<<" "<<p_cur->z<<endl;
+		if(p_cur->z <= 2. && p_cur->z >= 0.4)
+		    return pindex;
+		if(jd == 0) break; 
+	    }
+	    if(id == 0) break; 
+	}
+     }/*
+      for(int ih=0; ih<=d; ih++)
+	  for(int iw=-r; iw<=r; iw+=2)
+	  {
+	      int pw = cw + iw; 
+	      int ph = ch + ih; 
+	      int pindex = ph * w + pw;
+	      rs::float3 * p_cur = p + pindex; 
+	      cout <<"at x= "<<pw<<" y= "<<ph<<" pt: "<<p_cur->x<<" "<<p_cur->y<<" "<<p_cur->z<<endl;
+	      if(p_cur->z <= 2. && p_cur->z >= 0.4)
+		  return pindex;
+	  }*/
   }
   return -1;
 }
@@ -94,7 +116,7 @@ bool CBodyExtract::segmentFromCentralWithFlag(void** pts, int w, int h, vector<i
           cur_index = findInitialFromCentralWithFlag(pts, cw, ch, fvalid);
           if(cur_index < 0)
           {
-		// cout<<"body_extract.cpp: no good point around central point z: "<<p_cur->z<<" not good!"<<endl;
+		cout<<"body_extract.cpp: no good point around central point z: "<<p_cur->z<<" not good!"<<endl;
 		return ret; 
           }
 	}	
@@ -138,6 +160,9 @@ bool CBodyExtract::segmentFromCentralWithFlag(void** pts, int w, int h, vector<i
 		// cout<<"body_extract.cpp: successfully extract body with "<<pt_index.size()<<" points"<<endl;
 		indices = pt_index; 
 		ret = true;
+	}else
+	{
+	    cout<<"body_extract.cpp: failed to extract body with pt_index.size(): "<<pt_index.size()<<" threshold: "<<num_threshold<<endl;
 	}
 
 	return ret; 
@@ -166,6 +191,9 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
           }
 	}	
 	
+	// cout <<"cur_index: "<<cur_index<<endl;
+	
+
 	// collect the body points 
 	vector<int> pt_index; 
 	pt_index.reserve(num_threshold); 	
@@ -179,11 +207,12 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
 		pt_index.push_back(seed_index);
 		Neigh.pop(); 
 		rs::float3 * p_seed = p + seed_index; 
+		// cout <<"pt_index.size= "<<pt_index.size()<<" p_seed: "<<p_seed->x<<" "<<p_seed->y<<" "<<p_seed->z<<endl;
 		int sh = seed_index/w;
 		int sw = seed_index - sh*w; 
 		// search for neighbors 
-		for(int ih=-1; ih<=1; ih++)
-		for(int iw=-1; iw<=1; iw++)
+		for(int ih=-5; ih<=5; ih++)
+		for(int iw=-5; iw<=5; iw++)
 		{
 			ch = sh + ih; 
 			cw = sw + iw; 
@@ -191,6 +220,7 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
 			if(flags[ch][cw]) continue; 	// this point has been visited 
 			cur_index = ch * w + cw; 
 			p_cur = p + cur_index; 
+			// cout <<"cw = "<<cw<<" ch = "<<ch<<" pt: "<<p_cur->x<<" "<<p_cur->y<<" "<<p_cur->z<<endl;  
 			if(p_cur->z < 0.2 || p_cur->z >= 2) continue; // not valid point 
 			if(sqrDis(p_seed, p_cur) <= dis_threshold) // find a good neighbor 
 			{
@@ -206,7 +236,7 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
 		indices = pt_index; 
 		ret = true;
 	}else{
-            // cout <<"body_extract.cpp: failed! only find "<<pt_index.size()<<" points"<<endl;
+            cout <<"body_extract.cpp: failed! only find "<<pt_index.size()<<" points"<<endl;
         }
 
 	return ret; 

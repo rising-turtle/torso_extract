@@ -118,7 +118,7 @@ void offline_pipeline(int argc, char* argv[])
   // load data 
 
   // while (!glfwWindowShouldClose(win))
-  for(int j=10; j<400 && !glfwWindowShouldClose(win); j++)
+  for(int j=0; j<vt.size() && !glfwWindowShouldClose(win); j++)
   {
     // cv::imshow("rgb", rgb);
     // cv::waitKey(10); 

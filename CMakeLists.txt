@@ -11,8 +11,9 @@ set(CMAKE_CXX_FLAGS "$ENV{CXX_FLAGS} -O3 -w -g -ggdb -std=c++11")
 
 ## realsense libraries and includes 
 include_directories(/usr/local/include/librealsense /usr/local/include/GLFW 
-  /usr/local/include /usr/include/eigen3 /usr/include/python2.7)
-link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu)
+  /usr/local/include /usr/include/eigen3 /usr/include/python2.7 
+  /home/davidz/work/github/torso_extract/librealsense/include)
+link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu /home/davidz/work/github/librealsense/build)
 
 ## glfw3: required for compiling show_pc or body_orientation 
 find_package(glfw3 REQUIRED)
@@ -20,5 +21,5 @@ find_package(glfw3 REQUIRED)
 ## opencv : required for test_histogram 
 find_package(OpenCV REQUIRED)
 
-add_subdirectory(src bin)
-add_subdirectory(offline)
+# add_subdirectory(src bin)
+add_subdirectory(offline bin)

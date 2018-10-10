@@ -171,6 +171,13 @@ void offline_pipeline_oneshot(int argc, char* argv[])
 
 	vector<float> nonzero_x; 
 	vector<float> nonzero_y;
+	/*for(int i=0; i<pv.size(); i++)
+	{
+	    rs::float3 * pt = points + i; 
+	    glColor3f(1.0, 0, 0);
+	    glVertex(*pt);
+
+	}*/
 
 	if(body_extract.segmentFromCentral((void**)(&points), 640, 480, indices))
 	{
@@ -217,7 +224,8 @@ void offline_pipeline_oneshot(int argc, char* argv[])
 
 	}else{
 	    cerr <<"torso_offline.cpp: no body extracted ! "<<endl; 
-	    sleep(2); 
+	    // sleep(2); 
+	    break; 
 	}
 
 	glEnd();
@@ -286,6 +294,13 @@ bool readData2(string dir, vector<string>& vrgb, vector<string>& vdpt, int index
     }else{
 	cout <<"torso_offline_oneshot: handle image: "<<f_rgb<<endl;
     }
+    // cout <<"torso_offline_oneshot: show rgb: "<<f_rgb<<endl; 
+    // cv::imshow("rgb", rgb); 
+    // cv::waitKey(0); 
+    // cout <<"torso_offline_oneshot: show dpt: "<<f_dpt<<endl;
+    // cv::imshow("dpt", dpt); 
+    // cv::waitKey(0); 
+
     vector<int> indices; 
     computePts(pts, indices, cam, rgb, dpt, 0.001); 
     return true; 
