@@ -21,7 +21,7 @@ public:
 	~CBodyExtract(); 
 
 	/* segmentation using flood flow start from the central point*/
-	bool segmentFromCentral(void** pts, int w, int h, vector<int>& indices, float dis_threshold = 0.05*0.05, int num_threshold = 10000);
+	bool segmentFromCentral(void** pts, int w, int h, vector<int>& indices, float dis_threshold = 0.05*0.05, int num_threshold = 2000);
 	
 	/* segmentation using flood flow start from the central point with flags*/
 	bool segmentFromCentralWithFlag(void** pts, int w, int h, vector<int>& indices, vector<bool>& flags, float dis_threshold = 0.05*0.05, int num_threshold = 10000);

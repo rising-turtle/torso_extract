@@ -197,6 +197,8 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
 	// collect the body points 
 	vector<int> pt_index; 
 	pt_index.reserve(num_threshold); 	
+	
+	int neighbor_range = 20; 
 
 	flags[ch][cw] = true; 
 	queue<int> Neigh; 
@@ -211,8 +213,8 @@ bool CBodyExtract::segmentFromCentral(void** pts, int w, int h, vector<int>& ind
 		int sh = seed_index/w;
 		int sw = seed_index - sh*w; 
 		// search for neighbors 
-		for(int ih=-5; ih<=5; ih++)
-		for(int iw=-5; iw<=5; iw++)
+		for(int ih=-neighbor_range; ih<=neighbor_range; ih++)
+		for(int iw=-neighbor_range; iw<=neighbor_range; iw++)
 		{
 			ch = sh + ih; 
 			cw = sw + iw; 

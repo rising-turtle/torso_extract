@@ -225,7 +225,7 @@ void offline_pipeline(int argc, char* argv[])
       // save result 
       // ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<endl; 
       // ouf<<std::fixed<<j<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<endl; 
-      ouf<<std::fixed<<vt[j]<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<endl; 
+      ouf<<std::fixed<<vt[j]<<"\t"<<theta<<"\t"<<theta2<<"\t"<<smooth.pop()<<"\t"<<centroid_pt[0]<<"\t"<<centroid_pt[1]<<"\t"<<centroid_pt[2]<<endl; 
 
     }else{
       cerr <<"torso_offline.cpp: no body extracted ! "<<endl; 
